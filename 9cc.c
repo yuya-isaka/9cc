@@ -5,6 +5,24 @@
 #include <stdbool.h>
 #include <string.h>
 
+char *user_input;
+
+// 入力文字全体を表す文字列の途中を指しているポインタを受け取る
+// そのポインタと入力の先頭を表しているポインタとの差をとると，エラーの場所が入力の
+// 何バイトメカわかる
+void error_at(char *loc, char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+
+  int pos = loc - user_input;
+  fprintf(stderr, "%s\n", user_input);
+  fprintf(stderr, "%*s", pos, " ");
+  fprintf(stderr, "^ ");
+  vfprintf(stderr, fmt, ap);
+  fprintf(stderr, "\n");
+  exit(1);
+  
+}
 void error(char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
@@ -44,14 +62,14 @@ bool consume(char op) {
 // consumeとちょっと違う動きするだけ
 void expect(char op) {
   if (token->kind != TK_RESERVED || token->str[0] != op)
-    error("'%c'ではありません", op);
+    error_at(token->str, "'%c'ではありません", op);
   token = token->next;
 }
 
 // tokenkindが数か確かめて，tokenを一つ進めて値を返す
 int expect_number() {
   if (token->kind != TK_NUM)
-    error("数ではありません");
+    error_at(token->str, "数ではありません");
   int val = token->val;
   token = token->next;
   return val;
@@ -93,7 +111,7 @@ Token *tokenize(char *p) {
       continue;
     }
 
-    error("トークナイズできません");
+    error_at(token->str, "トークナイズできません");
   }
 
   new_token(TK_EOF, cur, p);
@@ -105,6 +123,9 @@ int main(int argc, char **argv) {
     fprintf(stderr, "引数の個数が正しくありません\n");
     return 1;
   }
+
+  // エラー箇所報告用の，先頭を指すポインタを保持する
+  user_input = argv[1];
 
   // トークン列を作り出す．あとはこのグローバルtoken変数を，他の関数で参照するだけにする．
   token = tokenize(argv[1]);
