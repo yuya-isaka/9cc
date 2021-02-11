@@ -61,6 +61,8 @@ assert 8 'a=3; z=5; return a+z;'
 
 assert 3 'foo=3; return foo;'
 assert 8 'foo123=3; bar=5; return foo123+bar;'
+assert 6 'foo=1; bar = 2 + 3; return foo + bar;'
+assert 14 'a = 3; b = 5 * 6 - 8; return a + b /2;'
 
 
 echo OK
