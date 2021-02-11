@@ -63,6 +63,4 @@ assert 3 'foo=3; return foo;'
 assert 8 'foo123=3; bar=5; return foo123+bar;'
 
 
-
-
 echo OK
