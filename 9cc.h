@@ -6,28 +6,28 @@
 #include <string.h>
 
 //
-// tokenize.c
+// tokenize.c ==========================================================================================
 //
 
-// Token
+// トークンの型
 typedef enum {
-  TK_RESERVED,  // 記号トークン
-  TK_IDENT,     // 識別子(ローカル変数)トークン
-  TK_NUM,       // 整数トークン
-  TK_EOF,       // 入力の終わりを表すトークン
+  TK_RESERVED,  // 記号
+  TK_IDENT,     // 識別子（ローカル変数）
+  TK_NUM,       // 数
+  TK_EOF,       // 終端（入力の終わり）
 } TokenKind;
 
-// トークン構造体
+// トークンの構造
 typedef struct Token Token; // 再帰的に使うために宣言
 struct Token {
   TokenKind kind;  // トークンの型
-  Token *next;     // 次の入力トークン
-  int val;         // kindがTK_NUMの場合，その数値
+  Token *next;     // 次のトークン
+  int val;         // kindがTK_NUMの場合，数値を表す
   char *str;       // トークン文字列
   int len;         // トークンの長さ
 };
 
-// 複数のCファイルで使用する，関数たち，だからここで宣言する
+// 複数のCファイルで使用する関数を宣言．（tokenize.cで定義）
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
@@ -39,67 +39,64 @@ bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 Token *tokenize();
 
+// 複数のCファイルで使用する変数を宣言．（tokenize.cで定義）
 extern char *user_input;
 extern Token *token;
 
 
-// なんなら，consume, expect, expect_number あたりはtokenize.cにあるけど，その中では使っていない．
-
-
 //
-// parse.c
+// parse.c ========================================================================================
 //
 
-// ローカル変数構造体
-// 連想リストみたいに，変数を保持している
-// 全探索で，ここに引っ掛かるかfind_varで調べる
+// ローカル変数の構造
 typedef struct Var Var;
 struct Var {
-  Var *next;
-  char *name; // 変数の名前
-  int offset; // Offset 
+  Var *next;   // 次のローカル変数
+  char *name;  // 変数の名前
+  int offset;  // 変数のoffset 
 };
 
-// 抽象構文木のノードの種類
+// 抽象構文木のノードの型
 typedef enum {
-  ND_ADD,
-  ND_SUB,
-  ND_MUL,
-  ND_DIV,
-  ND_EQ, // ==
-  ND_NE, // !=
-  ND_LT, // <
-  ND_LE, // <=
-  ND_RETURN, // return 
-  ND_EXPR_STMT, // expression statement
-  ND_ASSIGN, // =
-  ND_VAR, // variable
-  ND_NUM,
+  ND_ADD,        // +
+  ND_SUB,        // -
+  ND_MUL,      	 // *
+  ND_DIV,      	 // /
+  ND_EQ,       	 // ==
+  ND_NE,       	 // !=
+  ND_LT,       	 // <
+  ND_LE,       	 // <=
+  ND_RETURN,   	 // return 
+  ND_EXPR_STMT,  // expression statement
+  ND_ASSIGN,     // 代入
+  ND_VAR,        // 変数
+  ND_NUM,        // 数
 } NodeKind;
 
-// 抽象構文木のノードの構造体
+// 抽象構文木のノードの構造
 typedef struct Node Node;
 struct Node {
-  NodeKind kind; // ノードの型
-  Node *next; // 次のノード
-  Node *lhs; // 左辺
-  Node *rhs; // 右辺
-  int val; // kindがND_NUMの場合のみ使う
-  Var *var; // kindがND_VARのときに使う
+  NodeKind kind;   // ノードの型
+  Node *next;      // 次のノード
+  Node *lhs;       // 左辺のノード
+  Node *rhs;       // 右辺のノード
+  int val;         // kindがND_NUMの場合，数値を表す
+  Var *var;        // kindがND_VARの場合，変数を表す
 };
 
-// program構造体
+// プログラムの構造（抽象構文木の先頭アドレス，ローカル変数連結リストの先頭アドレス，スタックサイズを持つ）
 typedef struct {
   Node *node;
   Var *locals;
   int stack_size;
 } Program;
 
+// 複数のCファイルで使用する関数を宣言（関数はextern要らない．つけてもいい．）
 Program *program();
-// 呼び出した関数の先で何が行われても，呼び出し基にとってはそのうち単にリターンしてくるだけだから．（コンパイルするときには必要ない）
+
 
 //
-// codegen.c
+// codegen.c =========================================================================================
 //
 
 void codegen(Program *node);
