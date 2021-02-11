@@ -17,7 +17,7 @@ typedef enum {
   TK_EOF,       // 入力の終わりを表すトークン
 } TokenKind;
 
-// トークン型
+// トークン構造体
 typedef struct Token Token; // 再帰的に使うために宣言
 struct Token {
   TokenKind kind;  // トークンの型
@@ -50,7 +50,9 @@ extern Token *token;
 // parse.c
 //
 
-// ローカル変数
+// ローカル変数構造体
+// 連想リストみたいに，変数を保持している
+// 全探索で，ここに引っ掛かるかfind_varで調べる
 typedef struct Var Var;
 struct Var {
   Var *next;
@@ -75,7 +77,7 @@ typedef enum {
   ND_NUM,
 } NodeKind;
 
-// 抽象構文木のノードの型
+// 抽象構文木のノードの構造体
 typedef struct Node Node;
 struct Node {
   NodeKind kind; // ノードの型
@@ -83,18 +85,10 @@ struct Node {
   Node *lhs; // 左辺
   Node *rhs; // 右辺
   int val; // kindがND_NUMの場合のみ使う
-  // int offset;  // kindがND_LVARの場合のみ使う　//新しいメンバー // ローカル変数のベースポインタからのオフセット */
-  // ローカル変数は名前で決まる固定の位置にある=>オフセットは構文解析の段階で決めることができる．
-  //  char name;
   Var *var; // kindがND_VARのときに使う
 };
 
-// parse.cでしか呼び出されていないから，やっぱり要らなかったー
-/* Node *new_node(NodeKind kind); */
-/* Node *new_binary(NodeKind kind, Node *lhs, Node *rhs); */
-/* Node *node_num(int val); */
-
-// したで再帰的に呼び出すコードは書かなくてもいい
+// program構造体
 typedef struct {
   Node *node;
   Var *locals;

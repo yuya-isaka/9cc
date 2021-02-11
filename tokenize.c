@@ -69,6 +69,8 @@ int expect_number() {
   return val;
 }
 
+// ===========================================================================
+
 // tokenkindが終端を指しているか確認
 bool at_eof() {
   return token->kind == TK_EOF;

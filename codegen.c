@@ -2,7 +2,7 @@
 
 void gen_addr(Node *node) {
    if (node->kind == ND_VAR) {
-     printf("  lea rax, [rbp-%d]\n", node->var->offset);
+     printf("  lea rax, [rbp-%d]\n", node->var->offset); // アドレスをロード
      printf("  push rax\n");
      return;
    }
@@ -44,7 +44,7 @@ void gen(Node *node) {
   case ND_RETURN:
     gen(node->lhs);
     printf("  pop rax\n");
-    printf("  jmp .Lreturn\n");
+    printf("  jmp .Lreturn\n"); // jmp .Lreturnで，エピローグに飛ぶ
     return;
   }
   
@@ -103,21 +103,14 @@ void codegen(Program *prog) {
   printf("main:\n");
 
   // プロローグ
-  // 変数26個分の領域を確保する
   printf("  push rbp\n");
   printf("  mov rbp, rsp\n");
   printf("  sub rsp, %d\n", prog->stack_size);
 
-  for (Node *node = prog->node; node; node = node->next) {
+  for (Node *node = prog->node; node; node = node->next)
     gen(node);
-
-    // 式の評価結果としてスタックに一つの値が残っている
-    // はずなので，スタックが溢れないようにポップしておく
-    //    printf("  pop rax\n");
-  }
   
   //　エピローグ
-  // 最後の式の結果がRAXに残っているのでそれが返り値になる
   printf(".Lreturn:\n");
   printf("  mov rsp, rbp\n");
   printf("  pop rbp\n");

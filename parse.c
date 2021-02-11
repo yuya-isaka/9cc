@@ -2,6 +2,7 @@
 
 Var *locals;
 
+// 全探索して，ローカル変数が登録されているか調べる．
 Var *find_var(Token *tok) {
   for (Var *var = locals; var; var = var->next)
     if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len))
@@ -150,7 +151,7 @@ Node *equality() {
 Node *assign() {
   Node *node = equality();
   if (consume("="))
-  node = new_binary(ND_ASSIGN, node, assign());
+    node = new_binary(ND_ASSIGN, node, assign());
   return node;
 }
 
