@@ -1,8 +1,9 @@
 #include "9cc.h"
 
+// 現在の「ローカル変数連結リストの先頭」を保持．
 Var *locals;
 
-// 全探索して，ローカル変数が登録されているか調べる．
+// 与えられたトークンが，「ローカル変数連結リスト」に含まれているか，全探索で確認．
 Var *find_var(Token *tok) {
   for (Var *var = locals; var; var = var->next)
     if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len))
@@ -10,12 +11,14 @@ Var *find_var(Token *tok) {
   return NULL;
 }
 
+// 与えられた「ノード型」を持つノードを作成．
 Node *new_node(NodeKind kind) {
   Node *node = calloc(1, sizeof(Node));
   node->kind = kind;
   return node;
 }
 
+// 与えられた「ノード型・左辺ノード・右辺ノード」を持つノードを作成．
 Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
   Node *node = new_node(kind);
   node->lhs = lhs;
@@ -23,24 +26,28 @@ Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
   return node;
 }
 
+// 与えられた「ノード型・左辺ノード」を持つノードを作成．
 Node *new_unary(NodeKind kind, Node *expr) {
   Node *node = new_node(kind);
   node->lhs = expr;
   return node;
 }
 
+// 与えられた「数値」を持つノードを作成
 Node *node_num(int val) {
   Node *node = new_node(ND_NUM);
   node->val = val;
   return node;
 }
 
+// 与えられた「ローカル変数構造」を持つノードを作成．
 Node *new_var(Var *var) {
   Node *node = new_node(ND_VAR);
   node->var = var;
   return node;
 }
 
+// 与えられた「変数名」を持つ「ローカル変数構造」を作成し，「ローカル変数連結リストの先頭」に繋げる．
 Var *push_var(char *name) {
   Var *var = calloc(1, sizeof(Var));
   var->next = locals;
@@ -49,6 +56,7 @@ Var *push_var(char *name) {
   return var;
 }
 
+// 前方宣言
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -124,7 +132,7 @@ Node *relational() {
       node = new_binary(ND_LT, node, add());
     if (consume("<="))
       node = new_binary(ND_LE, node, add());
-    else if (consume(">")) // コードジェネレータでサポートしなくていい．パーサで両辺を入れ替えて読み替える
+    else if (consume(">")) // コードジェネレータでサポートしなくていい．パーサで両辺を入れ替えて対応．
       node = new_binary(ND_LT, add(), node);
     else if (consume(">="))
       node = new_binary(ND_LE, add(), node);
@@ -175,17 +183,23 @@ Node *stmt() {
 
 // program = stmt*
 Program *program() {
+
+  // 「ローカル変数連結リスト」の先頭を作成．
   locals = NULL;
-  
+
+  // 「ノード連結リスト」の先頭を作成
   Node head;
   head.next = NULL;
   Node *cur = &head;
 
+  // 現在のトークンを「ノード」に置き換え，「ノード連結リスト」を作成（後ろに連結）．
+  // トークンの終端まで繰り返す．
   while (!at_eof()) {
     cur->next = stmt();
     cur = cur->next;
   }
 
+  // プログラムの作成（「ノード連結リスト」の先頭，「ローカル変数連結リスト」の先頭を持つ．）
   Program *prog = calloc(1, sizeof(Program));
   prog->node = head.next;
   prog->locals = locals;
