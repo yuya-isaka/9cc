@@ -1,5 +1,14 @@
 #include "9cc.h"
 
+Var *locals;
+
+Var *find_var(Token *tok) {
+  for (Var *var = locals; var; var = var->next)
+    if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len))
+      return var;
+  return NULL;
+}
+
 Node *new_node(NodeKind kind) {
   Node *node = calloc(1, sizeof(Node));
   node->kind = kind;
@@ -13,13 +22,35 @@ Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
   return node;
 }
 
+Node *new_unary(NodeKind kind, Node *expr) {
+  Node *node = new_node(kind);
+  node->lhs = expr;
+  return node;
+}
+
 Node *node_num(int val) {
   Node *node = new_node(ND_NUM);
   node->val = val;
   return node;
 }
 
+Node *new_var(Var *var) {
+  Node *node = new_node(ND_VAR);
+  node->var = var;
+  return node;
+}
+
+Var *push_var(char *name) {
+  Var *var = calloc(1, sizeof(Var));
+  var->next = locals;
+  var->name = name;
+  locals = var;
+  return var;
+}
+
+Node *stmt();
 Node *expr();
+Node *assign();
 Node *equality();
 Node *relational();
 Node *add();
@@ -27,12 +58,20 @@ Node *mul();
 Node *unary();
 Node *primary();
 
-// primary = "(" expr ")" | num
+// primary = "(" expr ")" | ident | num
 Node *primary() {
   if (consume("(")) {
     Node *node = expr();
     expect(")");
     return node;
+  }
+
+  Token *tok = consume_ident();
+  if (tok) {
+    Var *var = find_var(tok);
+    if (!var)
+      var = push_var(duplicate(tok->str, tok->len));
+    return new_var(var);
   }
 
   return node_num(expect_number());
@@ -107,8 +146,48 @@ Node *equality() {
   }
 }
 
-// expr = equality
+// assign = equality ("=" assign)?
+Node *assign() {
+  Node *node = equality();
+  if (consume("="))
+  node = new_binary(ND_ASSIGN, node, assign());
+  return node;
+}
+
+// expr = assign
 Node *expr() {
-  return equality();
+  return assign();
+}
+
+// stmt = "return" expr ";" | expr ";"
+Node *stmt() {
+  if (consume("return")) {
+    Node *node = new_unary(ND_RETURN, expr());
+    expect(";");
+    return node;
+  }
+  
+  Node *node = new_unary(ND_EXPR_STMT, expr());
+  expect(";");
+  return node;
+}
+
+// program = stmt*
+Program *program() {
+  locals = NULL;
+  
+  Node head;
+  head.next = NULL;
+  Node *cur = &head;
+
+  while (!at_eof()) {
+    cur->next = stmt();
+    cur = cur->next;
+  }
+
+  Program *prog = calloc(1, sizeof(Program));
+  prog->node = head.next;
+  prog->locals = locals;
+  return prog;
 }
 
