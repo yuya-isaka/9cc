@@ -56,7 +56,7 @@ struct Var {
   int offset;  // 変数のoffset 
 };
 
-// 抽象構文木のノードの型
+// ノードの型
 typedef enum {
   ND_ADD,        // +
   ND_SUB,        // -
@@ -73,7 +73,7 @@ typedef enum {
   ND_NUM,        // 数
 } NodeKind;
 
-// 抽象構文木のノードの構造
+// ノードの構造
 typedef struct Node Node;
 struct Node {
   NodeKind kind;   // ノードの型
@@ -84,7 +84,7 @@ struct Node {
   Var *var;        // kindがND_VARの場合，変数を表す
 };
 
-// プログラムの構造（抽象構文木の先頭アドレス，ローカル変数連結リストの先頭アドレス，スタックサイズを持つ）
+// プログラムの構造（「ノード連結リスト（抽象構文木）」の先頭，「ローカル変数連結リスト」の先頭，スタックサイズを持つ）
 typedef struct {
   Node *node;
   Var *locals;
