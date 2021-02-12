@@ -105,6 +105,26 @@ bool is_alnum(char c) {
   return is_alpha(c) || ('0' <= c && c <= '9');
 }
 
+char *starts_with_reserved(char *p) {
+  // 指定キーワード
+  static char *kw[] = {"return", "if", "else"};
+
+  for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++) {
+    int len = strlen(kw[i]);
+    if (startswith(p, kw[i]) && !is_alnum(p[len]))
+      return kw[i];
+  }
+
+  // 比較演算子
+  static char *ops[] = {"==", "!=", "<=", ">="};
+
+  for (int i = 0; i < sizeof(ops) / sizeof(*ops); i++)
+    if (startswith(p, ops[i]))
+      return ops[i];
+
+  return NULL;
+}
+
 // 与えられた文字列を，先頭から「トークンの連結リスト」に，変換．その後，先頭を返す．
 Token *tokenize() {
   char *p = user_input;
@@ -120,22 +140,14 @@ Token *tokenize() {
       continue;
     }
 
-    // 「return」のトークンを作成．
-    if (startswith(p, "return") && !is_alnum(p[6])) {
-      cur = new_token(TK_RESERVED, cur, p, 6);
-      p += 6;
-      continue;
-    }
+    // 「指定キーワード」「比較演算子」に当てはまる「文字列」の，それぞれのトークンを作成
+    char *kw = starts_with_reserved(p);
 
-    // 「比較演算子」のトークンを作成．
-    if (startswith(p, "==") ||
-	startswith(p, "!=") ||
-	startswith(p, "<=") ||
-	startswith(p, ">=")) {
-      cur = new_token(TK_RESERVED, cur, p, 2);
-
-      p += 2;
-      continue;
+    if (kw) {
+      int len = strlen(kw);
+      cur = new_token(TK_RESERVED, cur, p, len);
+      p += len;
+      continue; // これ忘れちゃいかん
     }
 
     // 「単項演算子」のトークンを作成．

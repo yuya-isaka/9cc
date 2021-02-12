@@ -1,5 +1,7 @@
 #include "9cc.h"
 
+int labelseq = 0;
+
 // ロード・ストアの前処理
 // 与えられたノードが「ローカル変数」の場合，指している「アドレス（重要）」をスタックから取り出し，raxレジスタにセットし．スタックにプッシュ．
 void gen_addr(Node *node) {
@@ -57,6 +59,29 @@ void gen(Node *node) {
     gen(node->rhs);
     store();
     return;
+    // 「if」なら，
+  case ND_IF: {
+    int seq = labelseq++;
+    if (node->els) {
+      gen(node->cond);
+      printf("  pop rax\n");
+      printf("  com rax, 0\n");
+      printf("  je .Lelse%d\n", seq);
+      gen(node->then);
+      printf("  jmp .Lend%d\n", seq);
+      printf(".Lelse%d:\n", seq);
+      gen(node->els);
+      printf(".Lend%d:\n", seq);
+    } else {
+      gen(node->cond);
+      printf("  pop rax\n");
+      printf("  cmp rax, 0\n");
+      printf("  je .Lend%d\n", seq);
+      gen(node->then);
+      printf(".Lend%d:\n", seq);
+    }
+    return;
+  }
     // 「return」なら，左辺ノードを生成し，スタックトップを返す．
     //  その後，エピローグにジャンプ
   case ND_RETURN:

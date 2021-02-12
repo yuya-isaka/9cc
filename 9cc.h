@@ -66,7 +66,8 @@ typedef enum {
   ND_NE,       	 // !=
   ND_LT,       	 // <
   ND_LE,       	 // <=
-  ND_RETURN,   	 // return 
+  ND_RETURN,   	 // return
+  ND_IF,         // if
   ND_EXPR_STMT,  // expression statement
   ND_ASSIGN,     // 代入
   ND_VAR,        // 変数
@@ -78,8 +79,14 @@ typedef struct Node Node;
 struct Node {
   NodeKind kind;   // ノードの型
   Node *next;      // 次のノード
+  
   Node *lhs;       // 左辺のノード
   Node *rhs;       // 右辺のノード
+  // if構文
+  Node *cond;
+  Node *then;
+  Node *els;
+  
   int val;         // kindがND_NUMの場合，数値を表す
   Var *var;        // kindがND_VARの場合，変数を表す
 };
