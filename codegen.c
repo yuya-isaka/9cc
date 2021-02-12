@@ -30,7 +30,7 @@ void store() {
   printf("  pop rdi\n");
   printf("  pop rax\n");
   printf("  mov [rax], rdi\n");
-  //  printf("  push rdi\n");  // わからん．なくてもいい．//わかった．return a=3;とかに対応してる．// 違うかも
+  printf("  push rdi\n");  // わからん．なくてもいい．//わかった．return a=3;とかに対応してる．// 違うかも // 一応最後の値はスタックにプッシュする？
 }
 
 // 与えられたノードに応じて，「アセンブリ」を出力しreturn．
@@ -43,7 +43,7 @@ void gen(Node *node) {
     // コロンなら，左辺ノードを生成し，スタックポインタを一つ分戻す．
   case ND_EXPR_STMT:
     gen(node->lhs);
-    //printf("  add rsp, 8\n"); // わからん．なくてもいい．//わかった，return a=3;とかに対応してる//違うかも
+    printf("  add rsp, 8\n"); // わからん．なくてもいい．//わかった，return a=3;とかに対応してる//違うかも // 一応スタックにプッシュしてる値を無視するために8足してる？
     return;
     // ローカル変数なら，ロードする．
   case ND_VAR:

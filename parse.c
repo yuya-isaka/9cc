@@ -175,7 +175,8 @@ Node *stmt() {
     expect(";");
     return node;
   }
-  
+
+  // 今までは，Node *node = expr();としていたが，ここで式としてのノードを用意してる？
   Node *node = new_unary(ND_EXPR_STMT, expr());
   expect(";");
   return node;
